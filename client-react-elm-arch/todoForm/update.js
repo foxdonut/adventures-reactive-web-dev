@@ -1,5 +1,3 @@
-import Task from "data.task";
-
 import { Action } from "./action";
 import { initialModel } from "./model";
 
@@ -13,9 +11,9 @@ const handler = services => model => ({
 
   Save: todo => [model, services.saveTodo(todo).map(Action.Saved)],
 
-  Saved: _maybeTodo => [
+  Saved: maybeTodo => [
     model,
-    Task.of(Action.ClearForm()) // signal saved maybeTodo
+    services.signalSaveTodo(maybeTodo)(Action.ClearForm())
   ]
 });
 

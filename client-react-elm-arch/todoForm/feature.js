@@ -1,10 +1,15 @@
 import { createFeature } from "../library/feature";
+import { broadcast } from "../library/broadcast";
 import { initialModel } from "./model";
-import services from "./service";
+import { saveTodo } from "./service";
 import { update } from "./update";
 import { view } from "./view.jsx";
 
 const createTodoFormFeature = config => {
+  const services = {
+    saveTodo,
+    signalSaveTodo: broadcast(config.outputs.onSaveTodo)
+  };
   const featureConfig = {
     inputs: config.inputs,
     initialModel: [initialModel, null],
@@ -15,6 +20,4 @@ const createTodoFormFeature = config => {
   return createFeature(featureConfig);
 };
 
-export {
-  createTodoFormFeature
-};
+export { createTodoFormFeature };

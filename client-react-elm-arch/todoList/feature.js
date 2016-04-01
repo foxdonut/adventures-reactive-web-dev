@@ -1,7 +1,7 @@
 import { createFeature } from "../library/feature";
+import { broadcast } from "../library/broadcast";
 import { initialModel } from "./model";
 import { loadTodos, deleteTodo } from "./service";
-import { broadcast } from "../library/broadcast";
 import { update } from "./update";
 import { view } from "./view.jsx";
 
@@ -9,7 +9,8 @@ const createTodoListFeature = config => {
   const services = {
     loadTodos,
     deleteTodo,
-    signalEditTodo: broadcast(config.outputs.onEditTodo)
+    signalEditTodo: broadcast(config.outputs.onEditTodo),
+    signalUpdatedList: broadcast(config.outputs.onUpdatedList)
   };
   const featureConfig = {
     inputs: config.inputs,
@@ -21,6 +22,4 @@ const createTodoListFeature = config => {
   return createFeature(featureConfig);
 };
 
-export {
-  createTodoListFeature
-};
+export { createTodoListFeature };

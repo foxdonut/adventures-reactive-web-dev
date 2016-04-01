@@ -10,6 +10,4 @@ const Action = Type({
   DeletedTodo: [Object]
 });
 
-export {
-  Action
-};
+export { Action };

@@ -8,6 +8,4 @@ const Action = Type({
   Saved: [Object]
 });
 
-export {
-  Action
-};
+export { Action };

@@ -30,8 +30,4 @@ const nothingTask = always(Task.of(Nothing()));
 const deleteTodo = todoId =>
   deleteTodoHttp(todoId).map(Just).orElse(nothingTask);
 
-export {
-  loadTodos,
-  deleteTodo
-};
-
+export { loadTodos, deleteTodo };

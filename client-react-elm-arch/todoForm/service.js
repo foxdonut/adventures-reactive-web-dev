@@ -18,9 +18,4 @@ const nothingTask = always(Task.of(Nothing()));
 const saveTodo = todo =>
   saveTodoHttp(todo).map(Just).orElse(nothingTask);
 
-const services = {
-  saveTodo
-};
-
-export default services;
-
+export { saveTodo };

@@ -45,7 +45,4 @@ const view = actions => model => {
   );
 };
 
-export {
-  view
-};
-
+export { view };
