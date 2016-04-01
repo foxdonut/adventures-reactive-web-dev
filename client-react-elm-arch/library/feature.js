@@ -17,7 +17,7 @@ import "rxjs/add/operator/merge";
 import "rxjs/add/operator/publishReplay";
 import "rxjs/add/operator/scan";
 import Task from "data.task";
-import { identity, prop } from "ramda";
+//import { Future } from "ramda-fantasy";
 
 const createFeature = config => {
   // action$ : Subject<Action>
@@ -38,13 +38,14 @@ const createFeature = config => {
   const modelAndTask$ = mergedAction$.scan(update, config.initialModel).publishReplay(1).refCount();
 
   // model$ : Observable<Model>
-  const model$ = modelAndTask$.map(prop(0));
+  const model$ = modelAndTask$.map(modelAndTask => modelAndTask[0]);
 
   // view$ : Observable<Html>
   const view$ = model$.map(config.view(action$));
 
   // sendAction : Action -> Task Never ()
   const sendAction = action => new Task((rej, res) => res(action$.next(action)));
+  //const sendAction = action => Future((rej, res) => res(action$.next(action)));
 
   // taskRunner$ : Observable<Task Never ()>
   const task$ = modelAndTask$.map(modelAndTask =>
@@ -58,6 +59,7 @@ const createFeature = config => {
   return result;
 };
 
+const identity = x => x;
 const taskRunner = task => task.fork(identity, identity);
 
 export { createFeature, taskRunner };
