@@ -1,8 +1,8 @@
 /*
 Config action model =
   { inputs : List (action$)
-  , initialModel : [ model, Maybe ( Task action ) ]
-  , update : action -> model -> [ model, Maybe ( Task action ) ]
+  , initialModel : [ model, Task action ]
+  , update : action -> model -> [ model, Task action ]
   , view : Address action -> model -> Html
   }
 
@@ -16,29 +16,26 @@ import "rxjs/add/operator/map";
 import "rxjs/add/operator/merge";
 import "rxjs/add/operator/publishReplay";
 import "rxjs/add/operator/scan";
-import { Just, fromNullable } from "data.maybe";
 import Task from "data.task";
 import { identity, prop } from "ramda";
 
 const createFeature = config => {
-  // action$ : Observable<Action>
+  // action$ : Subject<Action>
   const action$ = new BehaviorSubject(null);
 
-  // maybeAction : Observable<Maybe Action>
-  let maybeAction$ = action$.map(fromNullable);
+  // mergedAction$ : Observable<Action>
+  let mergedAction$ = action$;
 
   config.inputs.forEach(input$ => {
-    maybeAction$ = maybeAction$.merge(input$.map(Just));
+    mergedAction$ = mergedAction$.merge(input$);
   });
 
-  // update : { model : Model, task : Maybe ( Task Action ) } -> Maybe Action ->
-  //   { model : Model, task : Maybe ( Task Action ) }
-  const update = (modelAndTask, maybeAction) => maybeAction
-    .map(action => config.update(action)(modelAndTask[0]))
-    .getOrElse(modelAndTask);
+  // update : [ Model, Task Action ] -> Action -> [ Model, Task Action ]
+  const update = (modelAndTask, action) => action ?
+    config.update(action)(modelAndTask[0]) : modelAndTask;
 
-  // modelAndTask$ : Observable<[Model, Maybe (Task Action)]>
-  const modelAndTask$ = maybeAction$.scan(update, config.initialModel).publishReplay(1).refCount();
+  // modelAndTask$ : Observable<[Model, Task Action]>
+  const modelAndTask$ = mergedAction$.scan(update, config.initialModel).publishReplay(1).refCount();
 
   // model$ : Observable<Model>
   const model$ = modelAndTask$.map(prop(0));
@@ -51,10 +48,7 @@ const createFeature = config => {
 
   // taskRunner$ : Observable<Task Never ()>
   const task$ = modelAndTask$.map(modelAndTask =>
-    fromNullable(modelAndTask[1])
-    .map(t => t.chain(sendAction))
-    .getOrElse(Task.of(null))
-  );
+    modelAndTask[1] ? modelAndTask[1].chain(sendAction) : Task.of(null));
 
   const result = {
     view$,
