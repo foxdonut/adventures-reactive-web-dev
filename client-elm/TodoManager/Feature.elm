@@ -17,6 +17,7 @@ import TodoSummary.Feature exposing (TodoSummaryFeature, createTodoSummaryFeatur
 type alias Config =
   { outputs :
       { onUpdatedList : List (Signal.Address (List Todo))
+      , onSaveTodo : List (Signal.Address (Maybe Todo))
       }
   }
 
