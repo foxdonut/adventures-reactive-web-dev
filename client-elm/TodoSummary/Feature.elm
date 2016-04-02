@@ -1,4 +1,4 @@
-module TodoSummary.Feature (createTodoSummaryFeature) where
+module TodoSummary.Feature (TodoSummaryFeature, createTodoSummaryFeature) where
 
 import Effects exposing (Effects)
 import StartApp exposing (App, start)
@@ -13,7 +13,11 @@ type alias Config =
   }
 
 
-createTodoSummaryFeature : Config -> App Model
+type alias TodoSummaryFeature =
+  App Model
+
+
+createTodoSummaryFeature : Config -> TodoSummaryFeature
 createTodoSummaryFeature config =
   start
     { init = ( { todos = [], lastSaved = Nothing }, Effects.none )

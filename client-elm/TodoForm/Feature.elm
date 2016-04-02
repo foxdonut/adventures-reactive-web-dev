@@ -1,4 +1,4 @@
-module TodoForm.Feature (createTodoFormFeature) where
+module TodoForm.Feature (TodoFormFeature, createTodoFormFeature) where
 
 import Common.Model exposing (Todo)
 import Library.Util exposing (broadcast)
@@ -18,7 +18,11 @@ type alias Config =
   }
 
 
-createTodoFormFeature : Config -> App Model
+type alias TodoFormFeature =
+  App Model
+
+
+createTodoFormFeature : Config -> TodoFormFeature
 createTodoFormFeature config =
   start
     { init = initialModelAndEffects

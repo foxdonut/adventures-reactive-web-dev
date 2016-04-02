@@ -1,4 +1,4 @@
-module TodoList.Feature (createTodoListFeature) where
+module TodoList.Feature (TodoListFeature, createTodoListFeature) where
 
 import Common.Model exposing (Todo)
 import Library.Util exposing (broadcast)
@@ -19,7 +19,11 @@ type alias Config =
   }
 
 
-createTodoListFeature : Config -> App Model
+type alias TodoListFeature =
+  App Model
+
+
+createTodoListFeature : Config -> TodoListFeature
 createTodoListFeature config =
   start
     { init = initialModelAndEffects

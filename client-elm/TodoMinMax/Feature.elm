@@ -1,4 +1,4 @@
-module TodoMinMax.Feature (createTodoMinMaxFeature) where
+module TodoMinMax.Feature (TodoMinMaxFeature, createTodoMinMaxFeature) where
 
 import Effects exposing (Effects)
 import StartApp exposing (App, start)
@@ -13,7 +13,11 @@ type alias Config =
   }
 
 
-createTodoMinMaxFeature : Config -> App Model
+type alias TodoMinMaxFeature =
+  App Model
+
+
+createTodoMinMaxFeature : Config -> TodoMinMaxFeature
 createTodoMinMaxFeature config =
   start
     { init = ( { todos = [] }, Effects.none )

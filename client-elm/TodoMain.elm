@@ -2,12 +2,10 @@ module TodoMain (todoMainFeature) where
 
 import Effects exposing (Never)
 import Html exposing (Html, div)
-import StartApp exposing (App)
 import Task exposing (Task)
-import TodoManager.Feature exposing (Feature, createTodoManagerFeature)
+import TodoManager.Feature exposing (TodoManagerFeature, createTodoManagerFeature)
 import TodoMinMax.Action exposing (Action(Update))
-import TodoMinMax.Feature exposing (createTodoMinMaxFeature)
-import TodoMinMax.Model
+import TodoMinMax.Feature exposing (TodoMinMaxFeature, createTodoMinMaxFeature)
 
 
 todoMinMaxMailbox : Signal.Mailbox TodoMinMax.Action.Action
@@ -15,12 +13,12 @@ todoMinMaxMailbox =
   Signal.mailbox (Update [])
 
 
-todoMinMaxFeature : App TodoMinMax.Model.Model
+todoMinMaxFeature : TodoMinMaxFeature
 todoMinMaxFeature =
   createTodoMinMaxFeature { inputs = [ todoMinMaxMailbox.signal ] }
 
 
-todoManagerFeature : Feature
+todoManagerFeature : TodoManagerFeature
 todoManagerFeature =
   createTodoManagerFeature
     { outputs =
