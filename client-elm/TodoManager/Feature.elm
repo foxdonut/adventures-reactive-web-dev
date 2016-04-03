@@ -4,8 +4,6 @@ import Common.Model exposing (Todo, blankTodo)
 import Effects exposing (Never)
 import Html exposing (Html)
 import Task exposing (Task)
-import TodoForm.Action exposing (Action(Edit))
-import TodoForm.Feature exposing (TodoFormFeature, createTodoFormFeature)
 import TodoList.Action exposing (Action(ShowList, UpdateList))
 import TodoList.Feature exposing (TodoListFeature, createTodoListFeature)
 import TodoList.Model exposing (initialModel)
@@ -35,11 +33,6 @@ todoListMailbox =
   Signal.mailbox (ShowList initialModel)
 
 
-todoFormMailbox : Signal.Mailbox TodoForm.Action.Action
-todoFormMailbox =
-  Signal.mailbox (Edit blankTodo)
-
-
 todoSummaryMailbox : Signal.Mailbox TodoSummary.Action.Action
 todoSummaryMailbox =
   Signal.mailbox (Update [])
@@ -50,23 +43,8 @@ makeTodoListFeature config =
   createTodoListFeature
     { inputs = todoListMailbox.signal :: config.inputs
     , outputs =
-        { onEditTodo = Signal.forwardTo todoFormMailbox.address Edit :: config.outputs.onEditTodo
+        { onEditTodo = config.outputs.onEditTodo
         , onUpdatedList = Signal.forwardTo todoSummaryMailbox.address Update :: config.outputs.onUpdatedList
-        }
-    }
-
-
-makeTodoFormFeature : Config -> TodoFormFeature
-makeTodoFormFeature config =
-  createTodoFormFeature
-    { inputs = [ todoFormMailbox.signal ]
-    , outputs =
-        { onSaveTodo =
-            List.append
-              [ Signal.forwardTo todoListMailbox.address UpdateList
-              , Signal.forwardTo todoSummaryMailbox.address LastSaved
-              ]
-              config.outputs.onSaveTodo
         }
     }
 
@@ -76,16 +54,15 @@ makeTodoSummaryFeature config =
   createTodoSummaryFeature { inputs = [ todoSummaryMailbox.signal ] }
 
 
-makeHtml : TodoListFeature -> TodoFormFeature -> TodoSummaryFeature -> Signal Html
-makeHtml todoListFeature todoFormFeature todoSummaryFeature =
+makeHtml : TodoListFeature -> TodoSummaryFeature -> Signal Html
+makeHtml todoListFeature todoSummaryFeature =
   Signal.map2 view todoListFeature.html todoSummaryFeature.html
 
 
-makeTasks : TodoListFeature -> TodoFormFeature -> TodoSummaryFeature -> Signal (Task Never ())
-makeTasks todoListFeature todoFormFeature todoSummaryFeature =
+makeTasks : TodoListFeature -> TodoSummaryFeature -> Signal (Task Never ())
+makeTasks todoListFeature todoSummaryFeature =
   Signal.mergeMany
     [ todoListFeature.tasks
-    , todoFormFeature.tasks
     , todoSummaryFeature.tasks
     ]
 
@@ -96,17 +73,14 @@ createTodoManagerFeature config =
     todoListFeature =
       makeTodoListFeature config
 
-    todoFormFeature =
-      makeTodoFormFeature config
-
     todoSummaryFeature =
       makeTodoSummaryFeature config
 
     html =
-      makeHtml todoListFeature todoFormFeature todoSummaryFeature
+      makeHtml todoListFeature todoSummaryFeature
 
     tasks =
-      makeTasks todoListFeature todoFormFeature todoSummaryFeature
+      makeTasks todoListFeature todoSummaryFeature
   in
     { html = html
     , tasks = tasks
