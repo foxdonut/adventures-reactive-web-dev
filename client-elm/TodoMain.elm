@@ -1,8 +1,10 @@
-module TodoMain (todoMainFeature) where
+module TodoMain (createTodoMainFeature) where
 
+import Common.Model exposing (Todo, blankTodo)
 import Effects exposing (Never)
 import Html exposing (Html, div)
 import Task exposing (Task)
+import TodoList.Action exposing (Action(UpdateList))
 import TodoManager.Feature exposing (TodoManagerFeature, createTodoManagerFeature)
 import TodoMinMax.Action exposing (Action(Update))
 import TodoMinMax.Feature exposing (TodoMinMaxFeature, createTodoMinMaxFeature)
@@ -13,17 +15,25 @@ todoMinMaxMailbox =
   Signal.mailbox (Update [])
 
 
+todoEditMailbox : Signal.Mailbox Todo
+todoEditMailbox =
+  Signal.mailbox blankTodo
+
+
 todoMinMaxFeature : TodoMinMaxFeature
 todoMinMaxFeature =
   createTodoMinMaxFeature { inputs = [ todoMinMaxMailbox.signal ] }
 
 
-todoManagerFeature : TodoManagerFeature
-todoManagerFeature =
+makeTodoManagerFeature : Signal (Maybe Todo) -> TodoManagerFeature
+makeTodoManagerFeature saveTodoSignal =
   createTodoManagerFeature
-    { outputs =
+    { inputs =
+        [ Signal.map UpdateList saveTodoSignal ]
+    , outputs =
         { onUpdatedList = [ Signal.forwardTo todoMinMaxMailbox.address Update ]
         , onSaveTodo = []
+        , onEditTodo = [ todoEditMailbox.address ]
         }
     }
 
@@ -37,18 +47,26 @@ todoMainView todoManagerView todoMinMaxView =
     ]
 
 
-html : Signal Html
-html =
+makeHtml : TodoManagerFeature -> TodoMinMaxFeature -> Signal Html
+makeHtml todoManagerFeature todoMinMaxFeature =
   Signal.map2 todoMainView todoManagerFeature.html todoMinMaxFeature.html
 
 
-tasks : Signal (Task Never ())
-tasks =
+makeTasks : TodoManagerFeature -> Signal (Task Never ())
+makeTasks todoManagerFeature =
   todoManagerFeature.tasks
 
 
-todoMainFeature =
-  { html = html
-  , tasks = tasks
-  }
+createTodoMainFeature saveTodoSignal =
+  let
+    todoManagerFeature =
+      makeTodoManagerFeature saveTodoSignal
+
+    html =
+      makeHtml todoManagerFeature todoMinMaxFeature
+  in
+    { html = html
+    , tasks = makeTasks todoManagerFeature
+    , editTodoSignal = todoEditMailbox.signal
+    }
 

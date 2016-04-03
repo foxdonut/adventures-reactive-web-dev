@@ -23,7 +23,9 @@
     "url": "https://github.com/foxdonut/adventures-reactive-web-dev/issues"
   },
   "homepage": "https://github.com/foxdonut/adventures-reactive-web-dev#readme",
-  "dependencies": {},
+  "dependencies": {
+    "jquery": "^2.2.2"
+  },
   "devDependencies": {
     "elm-webpack-loader": "^2.0.0",
     "webpack": "^1.12.9",
