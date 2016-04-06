@@ -1,0 +1,19 @@
+digraph todomain_2 {
+  TodoMain [style="filled", fillcolor="lightblue", shape="plaintext", label=<
+    <table border="1">
+      <tr><td border="0">TodoMain</td></tr>
+      <tr><td border="1">TodoMinMax</td></tr>
+      <tr><td>
+        <table border="0">
+          <tr><td border="0">TodoManager</td></tr>
+          <tr><td border="0"><table border="0">
+            <tr><td border="1" align="left" bgcolor="red">TodoForm</td></tr>
+            <tr><td border="1" align="left">TodoList</td></tr>
+            <tr><td border="1" align="left">TodoSummary</td></tr>
+          </table></td></tr>
+        </table>
+      </td></tr>
+    </table>
+  >]
+}
+

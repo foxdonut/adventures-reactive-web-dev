@@ -1,80 +1,142 @@
-# Composing Features and Behaviours in the Elm Architecture
+# Connecting With External JavaScript
 
-by Fred Daoud - foxdonut, [@foxdonut00](https://twitter.com/foxdonut00)
-
-Questions as Github issues, and corrections or suggestions for improvement as Github pull requests,
-are welcome.
-
-## What is this article about?
-
-I wrote this article out of wondering how to organize code that follows the Elm architecture. I
-wanted to divide the code for parts of a page (call them components, sections, blocks, etc., I'll
-call them features from here on out) into their own directories. I wanted each feature to be
-independent of the others, but find a way for them to communicate information with each other.
-Finally, I wanted to see if I could group some of these features together to assemble larger
-features, while still keeping the same pattern of inter-feature communication.
-
-I also did not want to reinvent the wheel, so I am not replacing `StartApp`. In fact, each feature
-is built with `StartApp` and is itself an `App`. They are assembled together to form the final `App`
-that is used in the top-level `Main`.
-
-Some disclaimers: I only recently started learning Elm, and do not claim to be an expert.
-Furthermore, I do not claim to have invented any of the ideas presented in this article. The purpose
-is simply to put together what I feel are the best parts of what I have learned from
-[The Elm Architecture](https://github.com/evancz/elm-architecture-tutorial/),
-[Cycle.js](http://cycle.js.org/model-view-intent.html),
-[RxJS](https://github.com/Reactive-Extensions/RxJS),
-[Redux](http://redux.js.org/docs/introduction/ThreePrinciples.html), and others.
-
-That being said, my goal is to explain an approach to organize Elm code into _features_, where each
-feature is part of a page and is decoupled from other features, and to connect these features with
-_behaviours_. Behaviours are "what happens next" during a View -> Action -> Signal -> Update -> View
-cycle. Specifically, we want to be able to
-
-- Create features: each feature should be self-contained and independent of other features.
-- Chain events: _after this happens, that should happen next_.
-- Connect features with signals: _after this happens, notify all other features that want to be notified_,
-without needing to "know" what those other features are. Features react to events: _do something
-when **this** happens_, without needing to "know" which feature made **this** happen.
-- Build a large feature out of smaller features: useful to make a group of features reusable as a
-whole, without having to re-create the group each time.
-
-This will hopefully become clear when we dig into it and look at the code. What's important to know
-before reading on is that I assume knowledge of The Elm Architecture, because I build on top of that
-and will not go over the Elm Architecture itself. Please refer to
-[The Elm Architecture](https://github.com/evancz/elm-architecture-tutorial/)
-and [The Elm Tutorial](http://www.elm-tutorial.org/).
-
-## Example Overview
-
-I will use a simple Todo list application as an example. The application is on a single page, with a
-list of todos and a form, allowing for creating, editing, and deleting todos. We'll add a summary at
-the bottom which shows the total number of todos and the average priority. Finally, we'll add a
-section at the top that shows the highest and lowest priority of the todo list.
-
-<img src="images/todo-example.png" width="400"/>
-
-The application is backed by a server that accepts requests, using JSON as the data exchange format.
-The server is implemented with [Koa](http://koajs.com/). I won't go into the details of the server
-implementation since it is not the focus of this article.
-
-## Running the Application
-
-The instructions to run the example application are the same as for all of the other examples, so
-please follow the
-[top level instructions](https://github.com/foxdonut/adventures-reactive-web-dev/tree/master#requirements).
-
-## Article
-
-The article is divided into four parts, each in a separate branch:
-
-- [Part 1: Creating a Feature](https://github.com/foxdonut/adventures-reactive-web-dev/tree/elm-010-todolist-feature/client-elm#creating-a-feature)
-- [Part 2: Connecting Features Together](https://github.com/foxdonut/adventures-reactive-web-dev/tree/elm-020-todoform-feature/client-elm#connecting-features-together)
-- [Part 3: Multiple Listeners](https://github.com/foxdonut/adventures-reactive-web-dev/tree/elm-030-todosummary-feature/client-elm#multiple-listeners)
-- [Part 4: Composing Features](https://github.com/foxdonut/adventures-reactive-web-dev/tree/elm-040-todominmax-feature/client-elm#composing-features)
-
-The code in master is the same as in Part 4.
+_Note: this is Part 5 of "Composing Features and Behaviours in the Elm Architecture". See the
+[Introduction](https://github.com/foxdonut/adventures-reactive-web-dev/tree/master/client-elm#composing-features-and-behaviours-in-the-elm-architecture)
+for an overview and the table of contents._
 
 Questions as Github issues, and corrections or suggestions for improvement as Github pull requests, are welcome.
+
+In
+[Part 4](https://github.com/foxdonut/adventures-reactive-web-dev/tree/elm-040-todominmax-feature/client-elm#composing-features),
+we grouped three features together into one. We connected that to another feature with signals and
+addresses, and combined their views into the main view.
+
+Now, let's consider the situation where we have external JavaScript code that we would like to
+connect to our Elm application. We want two-way communication: that is, we want to send data from
+the external JavaScript code into our Elm application, and from our Elm application back out to the
+external JavaScript.
+
+## Externalizing the TodoForm
+
+For the purposes of this example, let's consider that the `TodoForm` is an external JavaScript
+component. The rest of the application remains in Elm:
+
+<img src="images/todomain_3.png"/>
+
+Remember that the `TodoForm` listens to the `TodoList`'s _edit_ so that the form gets populated when
+the users clicks on an _Edit_ button. That will need to be a signal from Elm to external JavaScript.
+Going the other way, the `TodoForm` notifies listeners when a todo is _saved_. Once we connect the
+signal from external JavaScript into Elm, we'll need to hook it up to the `TodoList` and the
+`TodoSummary` so that they can update themselves.
+
+
+
+Whereas before, the view for `TodoManager` was the combination of the `TodoList`, `TodoForm`, and
+`TodoSummary` views:
+
+[TodoManager/View.elm](TodoManager/View.elm)
+```elm
+view todoListView todoFormView todoSummaryView =
+  div
+    []
+    [ todoFormView
+    , todoListView
+    , todoSummaryView
+    ]
+```
+
+Now, we'll just put a placeholder `div` with an id for the `TodoForm`:
+
+[TodoManager/View.elm](TodoManager/View.elm)
+```elm
+view todoListView todoSummaryView =
+  div
+    []
+    [ div [ id "todoForm"] [] --<<----
+    , todoListView
+    , todoSummaryView
+    ]
+```
+
+[app.js](app.js)
+```javascript
+var Elm = require("./Main.elm");
+var elmApp = Elm.embed(Elm.Main, document.getElementById("app"));
+
+var container = document.getElementById("todoForm");
+container.innerHTML = "<div class='row'>" +
+  // ...
+  "<form>" +
+  // ...
+  "<input class='form-control' name='priority' id='priority'>" +
+  // ...
+  "<input class='form-control' name='description' id='description'>" +
+  // ...
+  "<button class='btn btn-primary btn-xs' id='save'>Save</button> " +
+  "<button class='btn btn-danger btn-xs' id='cancel'>Cancel</button>" +
+  // ...
+```
+
+That sure is an ugly way of constructing an HTML view! I am _not_ advocating this code as good
+practice. There are other ways that are definitely better, but that is not the point of this
+article. For the purposes of this example, we just want the form to be in JavaScript so that we can
+see how we connect it to Elm.
+
+[app.js](app.js)
+```javascript
+var $ = require("jquery");
+
+var editTodo = function(todo) {
+  $("#todoId").val(todo.id);
+  $("#priority").val(todo.priority);
+  $("#description").val(todo.description);
+};
+
+elmApp.ports.editTodo.subscribe(editTodo);
+```
+
+[Main.elm](Main.elm)
+```elm
+port editTodo : Signal Todo
+port editTodo =
+  todoMainFeature.editTodoSignal
+```
+
+[app.js](app.js)
+```javascript
+var elmApp = Elm.embed(Elm.Main, document.getElementById("app"), {saveTodo: null});
+```
+
+[app.js](app.js)
+```javascript
+var cancel = function(evt) {
+  evt.preventDefault();
+  $("#todoId").val("");
+  $("#priority").val("");
+  $("#description").val("");
+};
+
+$("#save").on("click", function(evt) {
+  evt.preventDefault();
+  var todo = {
+    id: parseInt($("#todoId").val() || 0),
+    priority: parseInt($("#priority").val() || 1),
+    description: $("#description").val()
+  };
+  $.post("/api/saveTodo", JSON.stringify(todo), function(response) {
+    elmApp.ports.saveTodo.send(response);
+    cancel(evt);
+  }, "json");
+});
+
+$("#cancel").on("click", cancel);
+```
+
+[Main.elm](Main.elm)
+```elm
+port saveTodo : Signal (Maybe Todo)
+
+todoMainFeature = createTodoMainFeature saveTodo
+```
 
 If you enjoy this article, consider [tweeting](https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Fgithub.com%2Ffoxdonut%2Fadventures-reactive-web-dev%2Ftree%2Fmaster%2Fclient-elm&text=Composing%20Features%20and%20Behaviours%20in%20the%20Elm%20Architecture&tw_p=tweetbutton&url=http%3A%2F%2Fgithub.com%2Ffoxdonut%2Fadventures-reactive-web-dev%2Ftree%2Fmaster%2Fclient-elm&via=foxdonut00) it to your followers.
