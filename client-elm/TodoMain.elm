@@ -4,7 +4,6 @@ import Common.Model exposing (Todo, blankTodo)
 import Effects exposing (Never)
 import Html exposing (Html, div)
 import Task exposing (Task)
-import TodoList.Action exposing (Action(UpdateList))
 import TodoManager.Feature exposing (TodoManagerFeature, createTodoManagerFeature)
 import TodoMinMax.Action exposing (Action(Update))
 import TodoMinMax.Feature exposing (TodoMinMaxFeature, createTodoMinMaxFeature)
@@ -29,7 +28,7 @@ makeTodoManagerFeature : Signal (Maybe Todo) -> TodoManagerFeature
 makeTodoManagerFeature saveTodoSignal =
   createTodoManagerFeature
     { inputs =
-        [ Signal.map UpdateList saveTodoSignal ]
+        { saveTodoSignal = saveTodoSignal }
     , outputs =
         { onUpdatedList = [ Signal.forwardTo todoMinMaxMailbox.address Update ]
         , onEditTodo = [ todoEditMailbox.address ]

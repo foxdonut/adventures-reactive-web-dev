@@ -13,10 +13,10 @@ import TodoSummary.Feature exposing (TodoSummaryFeature, createTodoSummaryFeatur
 
 
 type alias Config =
-  { inputs : List (Signal.Signal TodoList.Action.Action)
+  { inputs :
+      { saveTodoSignal : Signal.Signal (Maybe Todo) }
   , outputs :
       { onUpdatedList : List (Signal.Address (List Todo))
-      , onSaveTodo : List (Signal.Address (Maybe Todo))
       , onEditTodo : List (Signal.Address Todo)
       }
   }
@@ -41,7 +41,7 @@ todoSummaryMailbox =
 makeTodoListFeature : Config -> TodoListFeature
 makeTodoListFeature config =
   createTodoListFeature
-    { inputs = todoListMailbox.signal :: config.inputs
+    { inputs = [ todoListMailbox.signal, Signal.map UpdateList config.inputs.saveTodoSignal ]
     , outputs =
         { onEditTodo = config.outputs.onEditTodo
         , onUpdatedList = Signal.forwardTo todoSummaryMailbox.address Update :: config.outputs.onUpdatedList
@@ -51,7 +51,8 @@ makeTodoListFeature config =
 
 makeTodoSummaryFeature : Config -> TodoSummaryFeature
 makeTodoSummaryFeature config =
-  createTodoSummaryFeature { inputs = [ todoSummaryMailbox.signal ] }
+  createTodoSummaryFeature
+    { inputs = [ todoSummaryMailbox.signal, Signal.map LastSaved config.inputs.saveTodoSignal ] }
 
 
 makeHtml : TodoListFeature -> TodoSummaryFeature -> Signal Html
