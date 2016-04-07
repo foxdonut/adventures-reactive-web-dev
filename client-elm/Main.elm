@@ -9,8 +9,8 @@ import Task exposing (Task)
 
 port saveTodo : Signal (Maybe Todo)
 
-
-todoMainFeature = createTodoMainFeature saveTodo
+todoMainFeature =
+  createTodoMainFeature saveTodo
 
 
 main : Signal Html
@@ -26,3 +26,4 @@ port tasks =
 port editTodo : Signal Todo
 port editTodo =
   todoMainFeature.editTodoSignal
+

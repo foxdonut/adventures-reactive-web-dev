@@ -90,6 +90,8 @@ practice. There are other ways that are definitely better, but that is not the p
 article. For the purposes of this example, we just want the form to be in JavaScript so that we can
 see how we connect it to Elm.
 
+## Connecting the Signals in JavaScript
+
 Let's first connect the _edit_ signal coming out of our Elm app to the `TodoForm`, so that the form
 will be populated when the user edits a todo from the `TodoList`.
 
@@ -106,23 +108,17 @@ var onEditTodo = function(todo) {
 elmApp.ports.editTodo.subscribe(onEditTodo);
 ```
 
-We hooked up the `onEditTodo` function to the Elm port called `editTodo`. We need to define that
-port in `Main.elm`:
-
-[Main.elm](Main.elm)
-```elm
-port editTodo : Signal Todo
-port editTodo =
-  todoMainFeature.editTodoSignal
-```
-
-The `editTodo` port corresponds to the `editTodoSignal` coming out of the `TodoMain` feature. We'll
-add that signal to `TodoMain` shortly.
+We hooked up the `onEditTodo` function to the Elm port called `editTodo`. We'll need to define that
+port in `Main.elm`. While we are in the JavaScript code, we'll also send out a signal to Elm for
+when a todo has been saved from the form:
 
 [app.js](app.js)
 ```javascript
 var elmApp = Elm.embed(Elm.Main, document.getElementById("app"), {saveTodo: null});
 ```
+
+Our signal is called `saveTodo` and starts with a null value. Next, we'll listen for a click on the
+_Save_ button, post the todo to the server, and send the response to Elm via the `saveTodo` port:
 
 [app.js](app.js)
 ```javascript
@@ -141,7 +137,7 @@ $("#save").on("click", function(evt) {
     description: $("#description").val()
   };
   $.post("/api/saveTodo", JSON.stringify(todo), function(response) {
-    elmApp.ports.saveTodo.send(response);
+    elmApp.ports.saveTodo.send(response); //--<<----
     cancel(evt);
   }, "json");
 });
@@ -149,11 +145,185 @@ $("#save").on("click", function(evt) {
 $("#cancel").on("click", cancel);
 ```
 
+For completeness, we've also cleared the form after saving the todo, and also hooked up the _Cancel_
+button.
+
+Now that we have a `saveTodo` signal going from JavaScript, we need to set it up as a `port` in our
+Elm Main.
+
+## Connecting the Signals in Elm
+
+We need to add two ports in our Elm Main: `saveTodo` and `editTodo`:
+
 [Main.elm](Main.elm)
 ```elm
-port saveTodo : Signal (Maybe Todo)
+port saveTodo : Signal (Maybe Todo) --<<----
 
-todoMainFeature = createTodoMainFeature saveTodo
+todoMainFeature =
+  createTodoMainFeature saveTodo --<<---- (1)
+
+
+main : Signal Html
+main =
+  todoMainFeature.html
+
+
+port tasks : Signal (Task Never ())
+port tasks =
+  todoMainFeature.tasks
+
+
+port editTodo : Signal Todo --<<---
+port editTodo =
+  todoMainFeature.editTodoSignal --<<---- (2)
 ```
 
+Our Main is ready to go. We need to do two things to set up our signals:
+
+1. Change our previous `todoMainFeature` to a `createTodoMainFeature` function so that we can pass
+the `saveTodo` signal as a parameter and pass it down to connect our features
+1. Pass up the _edit_ signal from our features and return it as `editTodoSignal` from the
+`todoMainFeature`.
+
+Let's see how we pass in the `saveTodo` signal down to our features.
+
+## Passing a Signal into a Feature
+
+In `TodoMain.elm`, whereas before we had `todoManagerFeature` as:
+
+```elm
+todoManagerFeature : TodoManagerFeature
+todoManagerFeature =
+   createTodoManagerFeature
+     { outputs =
+         { onUpdatedList = [ Signal.forwardTo todoMinMaxMailbox.address Update ]
+         , onSaveTodo = []
+         }
+     }
+```
+
+Now we need to pass in the `saveTodo` signal from `Main.elm`. So we'll change that into a function
+that accepts it as a parameter:
+
+[TodoMain.elm](TodoMain.elm)
+```elm
+makeTodoManagerFeature : Signal (Maybe Todo) -> TodoManagerFeature
+makeTodoManagerFeature saveTodoSignal =
+  createTodoManagerFeature
+    { inputs =
+        [ Signal.map UpdateList saveTodoSignal ]
+    , outputs =
+        { onUpdatedList = [ Signal.forwardTo todoMinMaxMailbox.address Update ]
+        , onSaveTodo = []
+        }
+    }
+```
+
+We're passing in `saveTodoSignal` into `TodoManagerFeature` by passing it in via `inputs`. Now, all
+the `createTodoManagerFeature` function has to do is combine `inputs` with those that we were
+already using previously:
+
+[TodoManager/Feature.elm](TodoManager/Feature.elm)
+```elm
+makeTodoListFeature config =
+   createTodoListFeature
+     { inputs = todoListMailbox.signal :: config.inputs --<<----
+     , outputs = -- ...
+     }
+```
+
+We've combined the inputs of the `TodoList` feature, and we do that in a similar fashion for the
+`TodoSummary` feature.
+
+Then we'll add the `createTodoMainFeature` function that receives `saveTodoSignal` and calls
+`makeTodoManagerFeature`:
+
+[TodoMain.elm](TodoMain.elm)
+```elm
+createTodoMainFeature saveTodoSignal =
+  let
+    todoManagerFeature =
+      makeTodoManagerFeature saveTodoSignal
+  {-- more code to come... --}
+```
+
+We also need to adjust the `html` and the `tasks`. Before, those were simply taken off of
+`todoManagerFeature`, but now that it is created via a function call, we need to turn those into
+function calls as well. Here is the modified code:
+
+[TodoMain.elm](TodoMain.elm)
+```elm
+makeHtml : TodoManagerFeature -> TodoMinMaxFeature -> Signal Html
+makeHtml todoManagerFeature todoMinMaxFeature =
+  Signal.map2 todoMainView todoManagerFeature.html todoMinMaxFeature.html
+
+
+makeTasks : TodoManagerFeature -> Signal (Task Never ())
+makeTasks todoManagerFeature =
+  todoManagerFeature.tasks
+
+
+createTodoMainFeature saveTodoSignal =
+  let
+    todoManagerFeature =
+      makeTodoManagerFeature saveTodoSignal
+
+    html =
+      makeHtml todoManagerFeature todoMinMaxFeature
+  in
+    { html = html
+    , tasks = makeTasks todoManagerFeature
+    }
+```
+
+## Passing a Signal out from a Feature
+
+We've passed a signal from external JavaScript into an Elm feature, but how do we pass a signal out
+from a Feature and back to the external JavaScript?
+
+In our example, that signal is `editTodo` which comes from `TodoList` and is used to populate the
+form. Remember that we wrote `todoMainFeature.editTodoSignal` in `Main.elm`. We need to return
+`editTodoSignal` from `todoMainFeature`:
+
+[TodoMain.elm](TodoMain.elm)
+```elm
+todoEditMailbox : Signal.Mailbox Todo
+todoEditMailbox =
+  Signal.mailbox blankTodo
+
+
+makeTodoManagerFeature : Signal (Maybe Todo) -> TodoManagerFeature
+makeTodoManagerFeature saveTodoSignal =
+  createTodoManagerFeature
+    { inputs =
+        [ Signal.map UpdateList saveTodoSignal ]
+    , outputs =
+        { onUpdatedList = [ Signal.forwardTo todoMinMaxMailbox.address Update ]
+        , onEditTodo = [ todoEditMailbox.address ] --<<----
+        }
+    }
+
+
+createTodoMainFeature saveTodoSignal =
+  let
+    todoManagerFeature =
+      makeTodoManagerFeature saveTodoSignal
+
+    html =
+      makeHtml todoManagerFeature todoMinMaxFeature
+  in
+    { html = html
+    , tasks = makeTasks todoManagerFeature
+    , editTodoSignal = todoEditMailbox.signal --<<----
+    }
+```
+
+## Conclusion
+
+We've seen how we can pass data between external JavaScript code and an Elm application.
+
+I hope you enjoyed this series. Thank you for reading!
+
 If you enjoy this article, consider [tweeting](https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Fgithub.com%2Ffoxdonut%2Fadventures-reactive-web-dev%2Ftree%2Fmaster%2Fclient-elm&text=Composing%20Features%20and%20Behaviours%20in%20the%20Elm%20Architecture&tw_p=tweetbutton&url=http%3A%2F%2Fgithub.com%2Ffoxdonut%2Fadventures-reactive-web-dev%2Ftree%2Fmaster%2Fclient-elm&via=foxdonut00) it to your followers.
+
+Fred Daoud - foxdonut, @foxdonut00

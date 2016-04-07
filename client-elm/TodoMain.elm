@@ -32,7 +32,6 @@ makeTodoManagerFeature saveTodoSignal =
         [ Signal.map UpdateList saveTodoSignal ]
     , outputs =
         { onUpdatedList = [ Signal.forwardTo todoMinMaxMailbox.address Update ]
-        , onSaveTodo = []
         , onEditTodo = [ todoEditMailbox.address ]
         }
     }
