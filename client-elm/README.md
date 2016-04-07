@@ -18,18 +18,18 @@ external JavaScript.
 
 ## Externalizing the TodoForm
 
-For the purposes of this example, let's consider that the `TodoForm` is an external JavaScript
-component. The rest of the application remains in Elm:
+For the purposes of this example, let's consider the scenario where the `TodoForm` is an external
+JavaScript component. The rest of the application remains in Elm:
 
 <img src="images/todomain_3.png"/>
 
-Remember that the `TodoForm` listens to the `TodoList`'s _edit_ so that the form gets populated when
-the users clicks on an _Edit_ button. That will need to be a signal from Elm to external JavaScript.
-Going the other way, the `TodoForm` notifies listeners when a todo is _saved_. Once we connect the
-signal from external JavaScript into Elm, we'll need to hook it up to the `TodoList` and the
-`TodoSummary` so that they can update themselves.
+Remember that the `TodoForm` listens to the `TodoList`'s _edit_ signal so that the form gets
+populated when the users clicks on an _Edit_ button. That will need to be a signal from Elm to
+external JavaScript. Going the other way, the `TodoForm` notifies listeners when a todo is _saved_.
+Once we connect the signal from external JavaScript into Elm, we'll need to hook it up to the
+`TodoList` and the `TodoSummary` so that they can update themselves.
 
-
+## Rendering a Container Element
 
 Whereas before, the view for `TodoManager` was the combination of the `TodoList`, `TodoForm`, and
 `TodoSummary` views:
@@ -45,7 +45,7 @@ view todoListView todoFormView todoSummaryView =
     ]
 ```
 
-Now, we'll just put a placeholder `div` with an id for the `TodoForm`:
+Now, we'll just put a container `div` with an id for the `TodoForm`:
 
 [TodoManager/View.elm](TodoManager/View.elm)
 ```elm
@@ -57,6 +57,14 @@ view todoListView todoSummaryView =
     , todoSummaryView
     ]
 ```
+
+That will allow us to render an external JavaScript component within the view produced by our Elm
+code.
+
+## Rendering the TodoForm in JavaScript
+
+Now that we have a container element in the view, let's render the TodoForm in it using the
+following JavaScript code:
 
 [app.js](app.js)
 ```javascript
@@ -82,18 +90,24 @@ practice. There are other ways that are definitely better, but that is not the p
 article. For the purposes of this example, we just want the form to be in JavaScript so that we can
 see how we connect it to Elm.
 
+Let's first connect the _edit_ signal coming out of our Elm app to the `TodoForm`, so that the form
+will be populated when the user edits a todo from the `TodoList`.
+
 [app.js](app.js)
 ```javascript
 var $ = require("jquery");
 
-var editTodo = function(todo) {
+var onEditTodo = function(todo) {
   $("#todoId").val(todo.id);
   $("#priority").val(todo.priority);
   $("#description").val(todo.description);
 };
 
-elmApp.ports.editTodo.subscribe(editTodo);
+elmApp.ports.editTodo.subscribe(onEditTodo);
 ```
+
+We hooked up the `onEditTodo` function to the Elm port called `editTodo`. We need to define that
+port in `Main.elm`:
 
 [Main.elm](Main.elm)
 ```elm
@@ -101,6 +115,9 @@ port editTodo : Signal Todo
 port editTodo =
   todoMainFeature.editTodoSignal
 ```
+
+The `editTodo` port corresponds to the `editTodoSignal` coming out of the `TodoMain` feature. We'll
+add that signal to `TodoMain` shortly.
 
 [app.js](app.js)
 ```javascript

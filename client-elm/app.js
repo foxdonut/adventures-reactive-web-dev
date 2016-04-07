@@ -44,10 +44,10 @@ $("#save").on("click", function(evt) {
 
 $("#cancel").on("click", cancel);
 
-var editTodo = function(todo) {
+var onEditTodo = function(todo) {
   $("#todoId").val(todo.id);
   $("#priority").val(todo.priority);
   $("#description").val(todo.description);
 };
 
-elmApp.ports.editTodo.subscribe(editTodo);
+elmApp.ports.editTodo.subscribe(onEditTodo);
