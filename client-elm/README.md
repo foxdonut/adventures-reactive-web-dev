@@ -211,7 +211,7 @@ makeTodoManagerFeature : Signal (Maybe Todo) -> TodoManagerFeature
 makeTodoManagerFeature saveTodoSignal =
   createTodoManagerFeature
     { inputs =
-        [ Signal.map UpdateList saveTodoSignal ]
+        { saveTodoSignal = saveTodoSignal }
     , outputs =
         { onUpdatedList = [ Signal.forwardTo todoMinMaxMailbox.address Update ]
         , onSaveTodo = []
@@ -226,10 +226,10 @@ already using previously:
 [TodoManager/Feature.elm](TodoManager/Feature.elm)
 ```elm
 makeTodoListFeature config =
-   createTodoListFeature
-     { inputs = todoListMailbox.signal :: config.inputs --<<----
-     , outputs = -- ...
-     }
+  createTodoListFeature
+    { inputs = [ todoListMailbox.signal, Signal.map UpdateList config.inputs.saveTodoSignal ]
+    , outputs = -- ...
+    }
 ```
 
 We've combined the inputs of the `TodoList` feature, and we do that in a similar fashion for the
@@ -296,7 +296,7 @@ makeTodoManagerFeature : Signal (Maybe Todo) -> TodoManagerFeature
 makeTodoManagerFeature saveTodoSignal =
   createTodoManagerFeature
     { inputs =
-        [ Signal.map UpdateList saveTodoSignal ]
+        { saveTodoSignal = saveTodoSignal }
     , outputs =
         { onUpdatedList = [ Signal.forwardTo todoMinMaxMailbox.address Update ]
         , onEditTodo = [ todoEditMailbox.address ] --<<----
