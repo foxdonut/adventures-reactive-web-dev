@@ -2,6 +2,8 @@
 
 by Fred Daoud - foxdonut, [@foxdonut00](https://twitter.com/foxdonut00)
 
+**New 2016-04-08**: [Part 5: Connecting With External JavaScript](https://github.com/foxdonut/adventures-reactive-web-dev/tree/elm-050-external-port/client-elm#connecting-with-external-javascript)
+
 Questions as Github issues, and corrections or suggestions for improvement as Github pull requests,
 are welcome.
 
@@ -38,6 +40,7 @@ without needing to "know" what those other features are. Features react to event
 when **this** happens_, without needing to "know" which feature made **this** happen.
 - Build a large feature out of smaller features: useful to make a group of features reusable as a
 whole, without having to re-create the group each time.
+- Be able to connect to external JavaScript code and exchange data in both directions.
 
 This will hopefully become clear when we dig into it and look at the code. What's important to know
 before reading on is that I assume knowledge of The Elm Architecture, because I build on top of that
@@ -66,14 +69,16 @@ please follow the
 
 ## Article
 
-The article is divided into four parts, each in a separate branch:
+The article is divided into five parts, each in a separate branch:
 
 - [Part 1: Creating a Feature](https://github.com/foxdonut/adventures-reactive-web-dev/tree/elm-010-todolist-feature/client-elm#creating-a-feature)
 - [Part 2: Connecting Features Together](https://github.com/foxdonut/adventures-reactive-web-dev/tree/elm-020-todoform-feature/client-elm#connecting-features-together)
 - [Part 3: Multiple Listeners](https://github.com/foxdonut/adventures-reactive-web-dev/tree/elm-030-todosummary-feature/client-elm#multiple-listeners)
 - [Part 4: Composing Features](https://github.com/foxdonut/adventures-reactive-web-dev/tree/elm-040-todominmax-feature/client-elm#composing-features)
+- [Part 5: Connecting With External JavaScript](https://github.com/foxdonut/adventures-reactive-web-dev/tree/elm-050-external-port/client-elm#connecting-with-external-javascript)
 
-The code in master is the same as in Part 4.
+The code in master is the same as in Part 4. (Not Part 5, because that is a demonstration of using
+external JavaScript, but is not the main example.)
 
 Questions as Github issues, and corrections or suggestions for improvement as Github pull requests, are welcome.
 
