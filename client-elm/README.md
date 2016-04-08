@@ -34,7 +34,6 @@ Once we connect the signal from external JavaScript into Elm, we'll need to hook
 Whereas before, the view for `TodoManager` was the combination of the `TodoList`, `TodoForm`, and
 `TodoSummary` views:
 
-[TodoManager/View.elm](TodoManager/View.elm)
 ```elm
 view todoListView todoFormView todoSummaryView =
   div
@@ -109,8 +108,8 @@ elmApp.ports.editTodo.subscribe(onEditTodo);
 ```
 
 We hooked up the `onEditTodo` function to the Elm port called `editTodo`. We'll need to define that
-port in `Main.elm`. While we are in the JavaScript code, we'll also send out a signal to Elm for
-when a todo has been saved from the form:
+port in `Main.elm`. While we are in the JavaScript code, we'll also send out a signal to Elm that
+indicates when a todo has been saved from the form:
 
 [app.js](app.js)
 ```javascript
@@ -146,7 +145,7 @@ $("#cancel").on("click", cancel);
 ```
 
 For completeness, we've also cleared the form after saving the todo, and also hooked up the _Cancel_
-button.
+button to clear the form.
 
 Now that we have a `saveTodo` signal going from JavaScript, we need to set it up as a `port` in our
 Elm Main.
@@ -181,11 +180,11 @@ port editTodo =
 Our Main is ready to go. We need to do two things to set up our signals:
 
 1. Change our previous `todoMainFeature` to a `createTodoMainFeature` function so that we can pass
-the `saveTodo` signal as a parameter and pass it down to connect our features
+the `saveTodo` signal as a parameter and pass it down into our features
 1. Pass up the _edit_ signal from our features and return it as `editTodoSignal` from the
 `todoMainFeature`.
 
-Let's see how we pass in the `saveTodo` signal down to our features.
+Let's see how we pass in the `saveTodo` signal to our features.
 
 ## Passing a Signal into a Feature
 
@@ -208,10 +207,10 @@ that accepts it as a parameter:
 [TodoMain.elm](TodoMain.elm)
 ```elm
 makeTodoManagerFeature : Signal (Maybe Todo) -> TodoManagerFeature
-makeTodoManagerFeature saveTodoSignal =
+makeTodoManagerFeature saveTodoSignal = --<<----
   createTodoManagerFeature
     { inputs =
-        { saveTodoSignal = saveTodoSignal }
+        { saveTodoSignal = saveTodoSignal } --<<----
     , outputs =
         { onUpdatedList = [ Signal.forwardTo todoMinMaxMailbox.address Update ]
         , onSaveTodo = []
@@ -233,9 +232,21 @@ makeTodoListFeature config =
 ```
 
 We've combined the inputs of the `TodoList` feature, and we do that in a similar fashion for the
-`TodoSummary` feature.
+`TodoSummary` feature:
 
-Then we'll add the `createTodoMainFeature` function that receives `saveTodoSignal` and calls
+[TodoManager/Feature.elm](TodoManager/Feature.elm)
+```elm
+makeTodoSummaryFeature : Config -> TodoSummaryFeature
+makeTodoSummaryFeature config =
+  createTodoSummaryFeature
+    { inputs = [ todoSummaryMailbox.signal, Signal.map LastSaved config.inputs.saveTodoSignal ] }
+```
+
+Notice how we're using `saveTodoSignal` for two different features. That is possible because we made
+`saveTodoSignal` a signal of data only `(Maybe Todo)`, and we can use `Signal.map` to turn the data
+into actions of different types, the types that each feature understands.
+
+Next, we'll add the `createTodoMainFeature` function that receives `saveTodoSignal` and calls
 `makeTodoManagerFeature`:
 
 [TodoMain.elm](TodoMain.elm)
@@ -276,12 +287,14 @@ createTodoMainFeature saveTodoSignal =
     }
 ```
 
+We've hooked up an external signal into a feature. Let's now make the reverse connection.
+
 ## Passing a Signal out from a Feature
 
 We've passed a signal from external JavaScript into an Elm feature, but how do we pass a signal out
 from a Feature and back to the external JavaScript?
 
-In our example, that signal is `editTodo` which comes from `TodoList` and is used to populate the
+In our example, that signal is `editTodo`, which comes from `TodoList`, and is used to populate the
 form. Remember that we wrote `todoMainFeature.editTodoSignal` in `Main.elm`. We need to return
 `editTodoSignal` from `todoMainFeature`:
 
@@ -318,8 +331,11 @@ createTodoMainFeature saveTodoSignal =
     }
 ```
 
-We've created a mailbox for the signal, passing the address to `TodoManagerFeature` as an
-`onEditTodo` listener and returning the signal in the result of `createTodoManagerFeature`.
+We've created a mailbox for the signal, `todoEditMailbox`, and we passed the address to
+`TodoManagerFeature` as an `onEditTodo` listener. We've returned the signal in the result of
+`createTodoManagerFeature`.
+
+Our external `TodoForm` is now fully functional!
 
 ## Conclusion
 
