@@ -318,9 +318,16 @@ createTodoMainFeature saveTodoSignal =
     }
 ```
 
+We've created a mailbox for the signal, passing the address to `TodoManagerFeature` as an
+`onEditTodo` listener and returning the signal in the result of `createTodoManagerFeature`.
+
 ## Conclusion
 
-We've seen how we can pass data between external JavaScript code and an Elm application.
+We've seen how we can pass data between external JavaScript code and an Elm application. We create
+two ports, one for each direction. The JavaScript code uses `send` and `subscribe` to send and
+receive data. The Elm code passes the incoming signal into the features, and returns the outgoing
+signal from the features. In the end, the features themselves work with signals and addresses in the
+same fashion as in the previous examples.
 
 I hope you enjoyed this series. Thank you for reading!
 
