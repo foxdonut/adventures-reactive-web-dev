@@ -26,7 +26,7 @@ const createFeature = config => {
   // mergedAction$ : Observable<Action>
   let mergedAction$ = action$;
 
-  config.inputs.forEach(input$ => {
+  (config.inputs || []).forEach(input$ => {
     mergedAction$ = mergedAction$.merge(input$);
   });
 
