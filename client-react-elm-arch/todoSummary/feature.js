@@ -1,5 +1,6 @@
+import { createFeature } from "meiosis";
+
 import { Nothing } from "data.maybe";
-import { createFeature } from "../library/feature";
 import { update } from "./update";
 import { view } from "./view.jsx";
 

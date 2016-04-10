@@ -3,16 +3,16 @@ import React from "react";
 import { Action } from "./action";
 
 const view = actions => model => {
-  const onLoad = _evt => actions.next(Action.LoadList());
+  const onLoad = _evt => actions.onNext(Action.LoadList());
 
   const onEdit = todo => evt => {
     evt.preventDefault();
-    actions.next(Action.EditTodo(todo));
+    actions.onNext(Action.EditTodo(todo));
   };
 
   const onDelete = todo => evt => {
     evt.preventDefault();
-    actions.next(Action.DeleteTodo(todo.id));
+    actions.onNext(Action.DeleteTodo(todo.id));
   };
 
   const renderTodo = todo => (

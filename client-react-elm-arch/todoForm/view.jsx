@@ -7,16 +7,16 @@ const view = actions => model => {
   const getTodo = evt => serialize(evt.target.form, {hash: true});
 
   const onChangeText = evt => 
-    actions.next(Action.Edit(getTodo(evt)));
+    actions.onNext(Action.Edit(getTodo(evt)));
 
   const onSave = evt => {
     evt.preventDefault();
-    actions.next(Action.Save(getTodo(evt)));
+    actions.onNext(Action.Save(getTodo(evt)));
   };
 
   const onCancel = function(evt) {
     evt.preventDefault();
-    actions.next(Action.ClearForm());
+    actions.onNext(Action.ClearForm());
   };
 
   const todo = model.todo;
