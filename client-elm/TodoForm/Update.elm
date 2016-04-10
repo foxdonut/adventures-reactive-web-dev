@@ -5,6 +5,7 @@ import Effects exposing (Effects, Never)
 import Task exposing (Task)
 import TodoForm.Action exposing (Action(NoOp, Edit, ClearForm, Save, Saved))
 import TodoForm.Model exposing (Model, initialModel)
+--import Debug exposing (watch, watchSummary)
 
 
 type alias Services =
@@ -22,19 +23,24 @@ initialModelAndEffects =
 
 update : Services -> Action -> Model -> ( Model, Effects Action )
 update services action model =
-  case action of
-    NoOp ->
-      ( model, Effects.none )
+{--
+  let
+    foo = watchSummary "model" toString model
+  in
+--}
+    case action of
+      NoOp ->
+        ( model, Effects.none )
 
-    Edit todo ->
-      ( { todo = todo }, Effects.none )
+      Edit todo ->
+        ( { todo = todo }, Effects.none )
 
-    ClearForm ->
-      initialModelAndEffects
+      ClearForm ->
+        initialModelAndEffects
 
-    Save todo ->
-      ( model, Effects.task (services.saveTodo todo) |> Effects.map Saved )
+      Save todo ->
+        ( model, Effects.task (services.saveTodo todo) |> Effects.map Saved )
 
-    Saved maybeTodo ->
-      ( model, services.signalSaveTodo maybeTodo ClearForm )
+      Saved maybeTodo ->
+        ( model, services.signalSaveTodo maybeTodo ClearForm )
 
