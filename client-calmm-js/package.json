@@ -1,0 +1,50 @@
+{
+  "name": "client-calmm-js",
+  "version": "1.0.0",
+  "description": "Adventures in Reactive Web Development",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack",
+    "watch": "DEV=true webpack --progress --colors --watch",
+    "dev": "node server/dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/foxdonut/adventures-reactive-web-dev.git"
+  },
+  "keywords": [
+    "atom",
+    "calmm-js",
+    "example",
+    "kefir",
+    "partial-lenses",
+    "react",
+    "reactive"
+  ],
+  "author": "foxdonut",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/foxdonut/adventures-reactive-web-dev/issues"
+  },
+  "homepage": "https://github.com/foxdonut/adventures-reactive-web-dev#readme",
+  "dependencies": {
+    "axios": "^0.9.1",
+    "kefir": "^3.2.1",
+    "kefir.atom": "^2.2.1",
+    "kefir.react.html": "^3.2.1",
+    "partial.lenses": "^3.3.0",
+    "ramda": "^0.21.0",
+    "react": "^15.0.1",
+    "react-dom": "^15.0.1",
+    "validate.js": "^0.9.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.3.21",
+    "babel-loader": "^6.2.0",
+    "babel-plugin-react-transform": "^2.0.0",
+    "babel-preset-es2015": "^6.3.13",
+    "babel-preset-react": "^6.3.13",
+    "webpack": "^1.12.9",
+    "webpack-dev-server": "^1.14.0"
+  }
+}
