@@ -1,14 +1,14 @@
 import React from "react";
 
-const View = function(props) {
+const View = function({model}) {
   const onEdit = todo => evt => {
     evt.preventDefault();
-    props.dispatch(props.actions.editTodo(todo));
+    //props.dispatch(props.actions.editTodo(todo));
   };
 
   const onDelete = todo => evt => {
     evt.preventDefault();
-    props.dispatch(props.actions.deleteTodo(todo));
+    //props.dispatch(props.actions.deleteTodo(todo));
   };
 
   const renderTodo = function(todo) {
@@ -26,10 +26,10 @@ const View = function(props) {
   };
 
 //FIXME
-  const todos = props.todos || [];
+  const todos = model.todos || [];
 
-  const inProgressIndicator = function(props) {
-    return props.inProgress ?
+  const inProgressIndicator = function(model) {
+    return model.inProgress ?
         <tr><td colSpan="3">Loading, please wait...</td></tr>
       : null;
   };
@@ -47,7 +47,7 @@ const View = function(props) {
             </tr>
           </thead>
           <tbody>
-            {inProgressIndicator(props)}
+            {inProgressIndicator(model)}
             {todos.map(renderTodo)}
           </tbody>
         </table>
