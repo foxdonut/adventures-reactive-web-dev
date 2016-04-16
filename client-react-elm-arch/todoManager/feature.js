@@ -1,7 +1,4 @@
-import { Subject } from "rxjs/Subject";
-import "rxjs/add/operator/combineLatest";
-import "rxjs/add/operator/map";
-import "rxjs/add/operator/merge";
+import { Subject } from "rx";
 import { append, unary } from "ramda";
 
 import { createTodoListFeature } from "../todoList/feature";

@@ -1,8 +1,5 @@
 import React from "react";
-import { Subject } from "rxjs/Subject";
-import "rxjs/add/operator/combineLatest";
-import "rxjs/add/operator/map";
-import "rxjs/add/operator/merge";
+import { Subject } from "rx";
 import { unary } from "ramda";
 
 import { createTodoManagerFeature } from "./todoManager/feature";

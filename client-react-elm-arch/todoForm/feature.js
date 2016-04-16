@@ -1,5 +1,4 @@
-import { createFeature } from "../library/feature";
-import { broadcast } from "../library/broadcast";
+import { broadcast, createFeature } from "meiosis";
 import { initialModel } from "./model";
 import { saveTodo } from "./service";
 import { update } from "./update";

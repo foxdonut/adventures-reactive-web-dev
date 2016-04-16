@@ -1,4 +1,4 @@
-import { createFeature } from "../library/feature";
+import { createFeature } from "meiosis";
 import { update } from "./update";
 import { view } from "./view.jsx";
 

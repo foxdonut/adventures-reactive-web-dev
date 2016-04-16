@@ -6,7 +6,7 @@ const handler = model => ({
   Update: todos => [assoc("todos", todos, model), null]
 });
 
-// update : Action -> Model -> [ model, Maybe (Task Action) ]
-const update = action => model => Action.case(handler(model), action);
+// update : Model -> Action -> [ model, Maybe (Task Action) ]
+const update = (model, action) => Action.case(handler(model), action);
 
 export { update };

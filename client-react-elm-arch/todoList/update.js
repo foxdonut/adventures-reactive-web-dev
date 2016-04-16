@@ -47,7 +47,7 @@ const handler = services => model => ({
   }
 });
 
-// update : Services -> Action -> Model -> [ model, Maybe (Task Action) ]
-const update = services => action => model => Action.case(handler(services)(model), action);
+// update : Services -> Model -> Action -> [ model, Maybe (Task Action) ]
+const update = services => (model, action) => Action.case(handler(services)(model), action);
 
 export { update };
