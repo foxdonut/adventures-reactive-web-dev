@@ -1,4 +1,5 @@
 import React from "react";
+import K, {bindProps, fromIds} from "kefir.react.html";
 
 const View = function({model}) {
   const onEdit = todo => evt => {
@@ -13,20 +14,17 @@ const View = function({model}) {
 
   const renderTodo = function(todo) {
     return (
-      <tr key={todo.id}>
-        <td>{todo.priority}</td>
-        <td>{todo.description}</td>
+      <K.tr key={todo.id}>
+        <K.td>{todo.priority}</K.td>
+        <K.td>{todo.description}</K.td>
         <td>
           <button className="btn btn-primary btn-xs" onClick={onEdit(todo)}>Edit</button>
           <span> </span>
           <button className="btn btn-danger btn-xs" onClick={onDelete(todo)}>Delete</button>
         </td>
-      </tr>
+      </K.tr>
     );
   };
-
-//FIXME
-  const todos = model.todos || [];
 
   const inProgressIndicator = function(model) {
     return model.inProgress ?
@@ -46,10 +44,10 @@ const View = function({model}) {
               <th>Action</th>
             </tr>
           </thead>
-          <tbody>
-            {inProgressIndicator(model)}
-            {todos.map(renderTodo)}
-          </tbody>
+          <K.tbody>
+            {/*inProgressIndicator(model)*/}
+            {K(model.lens("todos"), todos => todos.map(renderTodo))}
+          </K.tbody>
         </table>
       </div>
     </div>
