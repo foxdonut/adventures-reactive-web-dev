@@ -88,7 +88,7 @@ The model includes the list of todos, and a `message` that we can use to display
 
 Here are the actions that we have for `TodoList`:
 
-[TodoList.Action.elm](TodoList.Action.elm)
+[TodoList/Action.elm](TodoList/Action.elm)
 ```elm
 type Action
   = NoOp
